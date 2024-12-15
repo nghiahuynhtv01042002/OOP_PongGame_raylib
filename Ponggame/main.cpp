@@ -61,6 +61,9 @@ public:
         xPosition(xPos),yPosition(yPos), height(height),width(width),speed(0){}
     Paddle(float xPos, float yPos , int height, int width, int speed):
         xPosition(xPos),yPosition(yPos), height(height),width(width),speed(speed){}
+    void updateYPosition(int newpos){
+        this->yPosition +=newpos;
+    }
     void setSpeed(int speed){
         this->speed = speed;
     }   
@@ -68,15 +71,30 @@ public:
         this->xPosition = xPos;
         this->yPosition = yPos;
     }
-    void seth_HW(int height, int width){
+    void setYPos(float new_yPosition){
+        this->yPosition = new_yPosition;
+    }
+    void set_HW(int height, int width){
         this->height = height;
         this->width = width;
+    }
+    float getX_Pos(){
+        return xPosition;
+    }
+    float getY_Pos(){
+        return yPosition;
+    }
+    int getSpeed(){
+        return speed;
     }
     void Draw(){
         DrawRectangle(xPosition ,yPosition,width,height,WHITE);
     }
     int getHeigth(){
         return height;
+    }
+    int getWidth(){
+        return width;
     }
     void UpdatePostion(){
         if(IsKeyDown(KEY_UP)){
@@ -93,7 +111,25 @@ public:
         }
     }
 };
-
+class CPUPaddle:public Paddle{
+public: 
+    CPUPaddle(float xPos, float yPos, int height, int width, int speed)
+        : Paddle(xPos, yPos, height, width, speed){}
+    void UpdatePostion(float y_Position_Ball ){
+        if(getY_Pos()+getHeigth() /2 > y_Position_Ball){
+           this->updateYPosition(-getSpeed());
+        }
+        if(getY_Pos()+getHeigth() /2 <= y_Position_Ball){
+           this->updateYPosition(getSpeed());
+        }
+        if(getY_Pos() <=0){
+            setYPos(0);
+        }
+        if(getY_Pos()+ getHeigth() >= GetScreenHeight()){
+            setYPos(GetScreenHeight() - getHeigth());
+        }
+    }
+};
 int main () {
     const int screen_width = 1280;
     const int screen_height = 800;
@@ -105,19 +141,27 @@ int main () {
     ball.setSpeed(7 ,7);
 
     Paddle player1(0,0,0,0);
-    player1.seth_HW(120,25);
+    player1.set_HW(120,25);
     player1.setPosition(10,screen_height/2-player1.getHeigth()/2);
     player1.setSpeed(6);
+
+    CPUPaddle CPUplayer(0,0,0,0,0);
+    CPUplayer.set_HW(120,25);
+    CPUplayer.setPosition(screen_width -CPUplayer.getWidth() -10,screen_height/2-player1.getHeigth()/2);
+    CPUplayer.setSpeed(6);
+    
+
 
     while(!WindowShouldClose()){
         BeginDrawing();
         ball.UpdatePostion();
         player1.UpdatePostion();
-
+        CPUplayer.UpdatePostion(ball.getY_Pos());
         // Drawing  stuff
         ClearBackground(BLACK);
         ball.Draw();
         player1.Draw();
+        CPUplayer.Draw();
         // DrawRectangle(10,screen_height/2-60,25,120,WHITE);
         // DrawRectangle(screen_width -35 ,screen_height/2-60,25,120,WHITE);
         DrawLine(screen_width/2, 0 ,screen_width/2, screen_height ,WHITE);
