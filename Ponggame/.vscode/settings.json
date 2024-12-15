@@ -9,6 +9,9 @@
 		"**/*.exe": true,
 	},
 	"files.associations": {
-		"random": "cpp"
+		"random": "cpp",
+		"memory": "cpp",
+		"istream": "cpp",
+		"functional": "cpp"
 	}
 }

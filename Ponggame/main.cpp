@@ -1,5 +1,9 @@
 #include <iostream>
 #include <raylib.h>
+
+
+int player_Score = 0;
+int CPU_Score = 0;
 class Ball{
 private: 
     float xPosition ,yPosition;
@@ -20,6 +24,9 @@ public:
     void setRadius(float radius){
         this->radius = radius;
     }
+    float getRadius(){
+        return this->radius;
+    }
     void setSpeed(int xSpeed, int ySpeed){
         this->xSpeed = xSpeed;
         this->ySpeed = ySpeed;
@@ -36,8 +43,21 @@ public:
     int getY_Speed(){
         return ySpeed;
     }
+    void setX_Speed(int newXSpeed){
+        this->xSpeed = newXSpeed;
+    }
+    void setY_Speed(int newYSpeed){
+        this->ySpeed = newYSpeed;
+    }
     void Draw(){
         DrawCircle(xPosition, yPosition, radius, WHITE);
+    }
+    void Reset_ball(){
+        xPosition = GetScreenWidth()/2;
+        yPosition = GetScreenHeight()/2;
+        int speed_choice[2] = {-1,1};
+        xSpeed *= speed_choice[GetRandomValue(0,1)];
+        ySpeed *= speed_choice[GetRandomValue(0,1)];
     }
     void UpdatePostion(){
         this->xPosition += this->xSpeed;
@@ -45,10 +65,17 @@ public:
         if((int)(this->yPosition + this->radius) >= GetScreenHeight() || this->yPosition -  this->radius <=0){
             this->ySpeed *=-1;
         }
-        if((int)(this->xPosition + this->radius) >= GetScreenWidth() || this->xPosition - this->radius <=0){
-            this->xSpeed *=-1;
+        if((int)(this->xPosition + this->radius) >= GetScreenWidth()){
+            player_Score++;
+
+            Reset_ball();
+        }
+        if(this->xPosition - this->radius <=0){
+            CPU_Score++;
+            Reset_ball();
         }
     }
+    
 };
 class Paddle{
 private: 
@@ -130,13 +157,15 @@ public:
         }
     }
 };
+
+
 int main () {
     const int screen_width = 1280;
     const int screen_height = 800;
     const char* titile = "Pong Game made by TXN";
     InitWindow(screen_width, screen_height, titile);
     SetTargetFPS(60);
-
+    /*INITIAL OBJECT*/
     Ball ball(screen_width/2, screen_height/2, 20.00);
     ball.setSpeed(7 ,7);
 
@@ -150,21 +179,41 @@ int main () {
     CPUplayer.setPosition(screen_width -CPUplayer.getWidth() -10,screen_height/2-player1.getHeigth()/2);
     CPUplayer.setSpeed(6);
     
-
-
+    /*GAME LOOP*/
     while(!WindowShouldClose()){
+        // int endgame =0;
+        
         BeginDrawing();
+      
+        // if(CPU_Score>=3){
+        //     DrawText("YOU LOST", screen_width/4 -40,100, 100, WHITE);
+        //     endgame =1;
+        // }
+        // if(player_Score>=3){
+        //     DrawText("YOU WIN", screen_width/4-40,100, 100, WHITE);
+        //     endgame =1;
+        // }
+        /*MAIN EVENTS*/
+        if(CheckCollisionCircleRec( Vector2{ball.getX_Pos(), ball.getY_Pos()}, ball.getRadius() ,Rectangle{ player1.getX_Pos(), player1.getY_Pos(),(float) player1.getWidth(), (float)player1.getHeigth()})){
+            ball.setX_Speed(-1*ball.getX_Speed());
+        }
+        if(CheckCollisionCircleRec( Vector2{ball.getX_Pos(), ball.getY_Pos()}, ball.getRadius() ,Rectangle{ CPUplayer.getX_Pos(), CPUplayer.getY_Pos(),(float) CPUplayer.getWidth(), (float)CPUplayer.getHeigth()})){
+            ball.setX_Speed(-1*ball.getX_Speed());
+
+        }
+        /*UPDATE STATUS OBJECT*/
         ball.UpdatePostion();
         player1.UpdatePostion();
         CPUplayer.UpdatePostion(ball.getY_Pos());
-        // Drawing  stuff
+        /*DRAWING OBJECT*/
         ClearBackground(BLACK);
         ball.Draw();
         player1.Draw();
         CPUplayer.Draw();
-        // DrawRectangle(10,screen_height/2-60,25,120,WHITE);
-        // DrawRectangle(screen_width -35 ,screen_height/2-60,25,120,WHITE);
         DrawLine(screen_width/2, 0 ,screen_width/2, screen_height ,WHITE);
+        DrawText(TextFormat("%i",player_Score), screen_width/4-20,20, 80, WHITE);
+        DrawText(TextFormat("%i",CPU_Score), 3*screen_width/4-20,20, 80, WHITE);
+
         EndDrawing();
     }
     CloseWindow();
